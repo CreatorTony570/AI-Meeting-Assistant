@@ -12,7 +12,6 @@ import {
   Brain,
   Globe,
   CheckCircle,
-  Play,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -90,7 +89,7 @@ export default function LandingPage() {
           <Link href="/dashboard">
             <Button
               size="lg"
-              className="h-13 px-8 text-base bg-indigo-600 hover:bg-indigo-500 text-white rounded-full gap-2 shadow-xl shadow-indigo-500/30 transition-all hover:scale-105"
+              className="h-12 px-8 text-base bg-indigo-600 hover:bg-indigo-500 text-white rounded-full gap-2 shadow-xl shadow-indigo-500/30 transition-all hover:scale-105"
             >
               Launch Dashboard <ArrowRight size={18} />
             </Button>
@@ -99,7 +98,7 @@ export default function LandingPage() {
             <Button
               variant="outline"
               size="lg"
-              className="h-13 px-8 text-base rounded-full gap-2 border-white/10 bg-white/5 text-white hover:bg-white/10 transition-all"
+              className="h-12 px-8 text-base rounded-full gap-2 border-white/10 bg-white/5 text-white hover:bg-white/10 transition-all"
             >
               <Github size={18} /> View on GitHub
             </Button>
