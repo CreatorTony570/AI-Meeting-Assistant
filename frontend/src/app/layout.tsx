@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Read {
+}: {
   children: React.ReactNode;
 }) {
   return (
