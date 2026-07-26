@@ -5,6 +5,18 @@ from sqlalchemy.sql import func
 import uuid
 from app.db.base_class import Base
 
+class UserSettings(Base):
+    __tablename__ = "user_settings"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), unique=True, nullable=False)
+    ai_provider = Column(String, default="gemini")   # openai | gemini | openrouter
+    ai_model = Column(String, default="")            # e.g. gemini-1.5-pro, gpt-4o
+    encrypted_api_key = Column(Text, default="")     # stored as plain text (user's own key)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User", back_populates="settings")
+
 class User(Base):
     __tablename__ = "users"
 
@@ -17,6 +29,7 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     meetings = relationship("Meeting", back_populates="owner")
+    settings = relationship("UserSettings", back_populates="user", uselist=False)
 
 class Meeting(Base):
     __tablename__ = "meetings"

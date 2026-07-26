@@ -19,7 +19,7 @@ An enterprise-grade AI Meeting Assistant that transcribes recordings, generates 
 
 ### Prerequisites
 - Docker & Docker Compose
-- OpenAI API Key
+- An API key from your preferred AI provider (OpenAI, Gemini, or OpenRouter)
 
 ### Installation
 
@@ -31,10 +31,9 @@ An enterprise-grade AI Meeting Assistant that transcribes recordings, generates 
 
 2. Create `backend/.env` with your config
    ```env
-   DATABASE_URL=postgresql://postgres:postgres@db:5432/app
-   REDIS_URL=redis://redis:6379/0
+   DATABASE_URL=your-neon-postgres-url
+   REDIS_URL=your-upstash-redis-url
    SECRET_KEY=your-secret-key-here
-   OPENAI_API_KEY=your-openai-key
    ```
 
 3. Run with Docker
@@ -46,6 +45,20 @@ An enterprise-grade AI Meeting Assistant that transcribes recordings, generates 
    - Frontend → http://localhost:3000
    - API Docs → http://localhost:8000/docs
 
+5. Go to **Dashboard → AI Settings** to configure your AI provider and API key.
+
+---
+
+## 🤖 AI Provider Support
+
+You can configure your preferred AI provider directly from the dashboard — no environment variables needed.
+
+| Provider | Models | Cost |
+|----------|--------|------|
+| Google Gemini | gemini-1.5-pro, gemini-1.5-flash | Free / Paid |
+| OpenAI | gpt-4o, gpt-4-turbo, gpt-3.5-turbo | Paid |
+| OpenRouter | llama-3-70b, mistral-7b, claude-3-haiku | Flexible |
+
 ---
 
 ## 🏗️ Architecture
@@ -55,7 +68,7 @@ An enterprise-grade AI Meeting Assistant that transcribes recordings, generates 
 | Frontend | Next.js 14, Tailwind CSS, Shadcn UI, Framer Motion |
 | Backend | FastAPI, Celery, Redis |
 | Database | PostgreSQL + SQLAlchemy |
-| AI | Whisper (STT) + GPT-4 (Analysis) |
+| AI | Whisper (STT) + Multi-provider LLM support |
 
 ---
 
@@ -104,6 +117,6 @@ This project is licensed under the MIT License — see the [LICENSE](./LICENSE) 
 
 ### ✦ Mridul Sharma ✦
 
-© 2025 · All rights reserved
+© 2026 · All rights reserved
 
 </div>

@@ -4,9 +4,11 @@ from typing import Dict, Any
 from app.services.ai.providers.base import LLMProvider, TranscriptionProvider
 from app.core.config import settings
 
+
 class OpenAIProvider(LLMProvider, TranscriptionProvider):
-    def __init__(self, api_key: str = None):
+    def __init__(self, api_key: str = None, model: str = None):
         self.api_key = api_key or settings.OPENAI_API_KEY
+        self.model = model or "gpt-4o"
         self.client = openai.OpenAI(api_key=self.api_key)
 
     async def transcribe(self, file_path: str) -> Dict[str, Any]:
@@ -20,7 +22,7 @@ class OpenAIProvider(LLMProvider, TranscriptionProvider):
 
     async def _query_gpt(self, system_prompt: str, user_content: str) -> Dict[str, Any]:
         response = self.client.chat.completions.create(
-            model="gpt-4o",
+            model=self.model,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content}

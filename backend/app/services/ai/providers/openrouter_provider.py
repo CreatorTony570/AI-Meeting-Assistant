@@ -4,9 +4,11 @@ from typing import Dict, Any
 from app.services.ai.providers.base import LLMProvider
 from app.core.config import settings
 
+
 class OpenRouterProvider(LLMProvider):
-    def __init__(self, api_key: str = None):
+    def __init__(self, api_key: str = None, model: str = None):
         self.api_key = api_key or settings.OPENROUTER_API_KEY
+        self.model = model or "meta-llama/llama-3-70b-instruct"
         self.base_url = "https://openrouter.ai/api/v1"
 
     async def generate_summary(self, transcript: str, prompt: str) -> Dict[str, Any]:
@@ -18,7 +20,7 @@ class OpenRouterProvider(LLMProvider):
                     "Content-Type": "application/json",
                 },
                 json={
-                    "model": "meta-llama/llama-3-70b-instruct", # Default or configurable
+                    "model": self.model,
                     "messages": [
                         {"role": "system", "content": prompt},
                         {"role": "user", "content": transcript}
@@ -28,10 +30,8 @@ class OpenRouterProvider(LLMProvider):
                 timeout=60.0
             )
             data = response.json()
-            # OpenRouter format might need normalization
             content = data['choices'][0]['message']['content']
             return json.loads(content)
 
     async def extract_action_items(self, transcript: str, prompt: str) -> Dict[str, Any]:
-        # Similar implementation to generate_summary
         return await self.generate_summary(transcript, prompt)
