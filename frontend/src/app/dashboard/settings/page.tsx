@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Brain, Zap, Globe, KeyRound, Cpu, CheckCircle2, AlertCircle, Eye, EyeOff } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 const PROVIDERS: Record<string, { label: string; icon: React.ReactNode; models: string[]; badge: string }> = {
   openai: {
@@ -34,6 +34,12 @@ const PROVIDERS: Record<string, { label: string; icon: React.ReactNode; models: 
   },
 };
 
+function getAuthHeaders() {
+  if (typeof window === "undefined") return {};
+  const token = localStorage.getItem("token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export default function SettingsPage() {
   const [provider, setProvider] = useState("gemini");
   const [model, setModel] = useState("gemini-1.5-flash");
@@ -41,35 +47,38 @@ export default function SettingsPage() {
   const [showKey, setShowKey] = useState(false);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [loading, setLoading] = useState(true);
-
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  const headers = { Authorization: `Bearer ${token}` };
+  const [authError, setAuthError] = useState(false);
 
   useEffect(() => {
+    if (!API_URL) { setLoading(false); return; }
     axios
-      .get(`${API_URL}/settings/me`, { headers })
+      .get(`${API_URL}/settings/me`, { headers: getAuthHeaders() })
       .then((res) => {
         setProvider(res.data.ai_provider ?? "gemini");
         setModel(res.data.ai_model ?? "gemini-1.5-flash");
         setApiKey(res.data.encrypted_api_key ?? "");
       })
-      .catch(() => {/* use defaults */})
+      .catch((err) => {
+        if (err?.response?.status === 401 || err?.response?.status === 403) {
+          setAuthError(true);
+        }
+      })
       .finally(() => setLoading(false));
   }, []);
 
-  // When provider changes, auto-select first model for that provider
   const handleProviderChange = (val: string) => {
     setProvider(val);
     setModel(PROVIDERS[val]?.models[0] ?? "");
   };
 
   const handleSave = async () => {
+    if (!API_URL) { setStatus("error"); return; }
     setStatus("saving");
     try {
       await axios.put(
         `${API_URL}/settings/me`,
         { ai_provider: provider, ai_model: model, encrypted_api_key: apiKey },
-        { headers }
+        { headers: getAuthHeaders() }
       );
       setStatus("saved");
       setTimeout(() => setStatus("idle"), 3000);
@@ -78,6 +87,26 @@ export default function SettingsPage() {
       setTimeout(() => setStatus("idle"), 3000);
     }
   };
+
+  if (!API_URL) {
+    return (
+      <div className="max-w-2xl mx-auto py-10 px-4">
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-sm">
+          <strong>Backend not configured.</strong> Set <code>NEXT_PUBLIC_API_URL</code> in your Vercel environment variables to your Render backend URL, then redeploy.
+        </div>
+      </div>
+    );
+  }
+
+  if (authError) {
+    return (
+      <div className="max-w-2xl mx-auto py-10 px-4">
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm">
+          <strong>Not authenticated.</strong> Please <a href="/auth/login" className="underline font-medium">sign in</a> first.
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -94,7 +123,7 @@ export default function SettingsPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">AI Settings</h1>
         <p className="text-slate-500 text-sm mt-1">
-          Choose your AI provider, model, and enter your API key. Keys are stored in the database and never exposed.
+          Choose your AI provider, model, and enter your API key. Keys are saved to your account.
         </p>
       </div>
 
@@ -106,7 +135,7 @@ export default function SettingsPage() {
           </CardTitle>
           <CardDescription>Select the AI service you want to use for analysis.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent>
           <div className="grid grid-cols-3 gap-3">
             {Object.entries(PROVIDERS).map(([key, p]) => (
               <button
@@ -158,7 +187,7 @@ export default function SettingsPage() {
             <KeyRound size={16} className="text-amber-500" /> API Key
           </CardTitle>
           <CardDescription>
-            Your key for <span className="font-semibold">{currentProvider?.label}</span>. Leave blank to use the server default (if configured).
+            Your key for <span className="font-semibold">{currentProvider?.label}</span>. Leave blank to use the server default.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -166,22 +195,22 @@ export default function SettingsPage() {
             <input
               type={showKey ? "text" : "password"}
               value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setApiKey(e.target.value)}
               placeholder={`Enter your ${currentProvider?.label} API key…`}
               className="w-full px-4 py-2.5 pr-10 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 font-mono"
             />
             <button
               type="button"
-              onClick={() => setShowKey((v) => !v)}
+              onClick={() => setShowKey((v: boolean) => !v)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
             >
               {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
           <p className="text-xs text-slate-400 mt-2">
-            {provider === "gemini" && "Get a free key at aistudio.google.com"}
-            {provider === "openai" && "Get your key at platform.openai.com"}
-            {provider === "openrouter" && "Get a free key at openrouter.ai"}
+            {provider === "gemini" && <>Get a free key at <a href="https://aistudio.google.com" target="_blank" rel="noopener noreferrer" className="underline">aistudio.google.com</a></>}
+            {provider === "openai" && <>Get your key at <a href="https://platform.openai.com" target="_blank" rel="noopener noreferrer" className="underline">platform.openai.com</a></>}
+            {provider === "openrouter" && <>Get a free key at <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer" className="underline">openrouter.ai</a></>}
           </p>
         </CardContent>
       </Card>
@@ -190,7 +219,7 @@ export default function SettingsPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm">
           {status === "saved" && <><CheckCircle2 size={16} className="text-emerald-500" /><span className="text-emerald-600">Settings saved!</span></>}
-          {status === "error" && <><AlertCircle size={16} className="text-red-500" /><span className="text-red-600">Failed to save. Try again.</span></>}
+          {status === "error" && <><AlertCircle size={16} className="text-red-500" /><span className="text-red-600">Failed to save. Check your connection.</span></>}
         </div>
         <Button
           onClick={handleSave}

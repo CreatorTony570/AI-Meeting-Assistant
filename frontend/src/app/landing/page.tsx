@@ -46,15 +46,19 @@ export default function LandingPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" className="text-white/60 hover:text-white hover:bg-white/5">
-            Login
-          </Button>
-          <Button
-            size="sm"
-            className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-full px-5 shadow-lg shadow-indigo-500/25 transition-all"
-          >
-            Get Started
-          </Button>
+          <Link href="/auth/login">
+            <Button variant="ghost" size="sm" className="text-white/60 hover:text-white hover:bg-white/5">
+              Login
+            </Button>
+          </Link>
+          <Link href="/auth/signup">
+            <Button
+              size="sm"
+              className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-full px-5 shadow-lg shadow-indigo-500/25 transition-all"
+            >
+              Get Started
+            </Button>
+          </Link>
         </div>
       </nav>
 

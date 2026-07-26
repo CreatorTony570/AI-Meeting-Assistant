@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Cpu, Zap, Brain, Globe } from "lucide-react";
+import { Zap, Brain, Globe } from "lucide-react";
 
 export function ProviderSelector({ value, onChange }: any) {
   const providers = [
